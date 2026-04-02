@@ -1,0 +1,8 @@
+node_modules
+.env
+dist
+build
+
+frontend/node_modules
+parfum-shop/node_modules
+parfum-shop/server/node_modules

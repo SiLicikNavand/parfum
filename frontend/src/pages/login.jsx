@@ -1,24 +1,61 @@
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import BASE_URL from "../api"
+
 export default function Login() {
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const navigate = useNavigate()
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/auth/login`, { // 🔥 FIX DI SINI
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+
+      const data = await res.json()
+      console.log(data)
+
+      if (res.ok) {
+        localStorage.setItem("token", data.token)
+        alert("Login berhasil 🔥")
+        navigate("/admin")
+      } else {
+        alert(data.message)
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Server error")
+    }
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="bg-white/10 backdrop-blur-xl p-10 rounded-2xl w-[360px] text-white">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          Login
-        </h2>
+      <div className="bg-white p-10 rounded-xl w-[300px]">
+        <h2 className="text-xl mb-4 text-center font-bold">Login</h2>
 
         <input
-          type="email"
-          placeholder="Email"
-          className="w-full mb-4 px-4 py-3 rounded-lg bg-white/20 outline-none"
+          type="text"
+          placeholder="Username"
+          className="border p-2 w-full mb-3"
+          onChange={(e) => setUsername(e.target.value)}
         />
 
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-6 px-4 py-3 rounded-lg bg-white/20 outline-none"
+          className="border p-2 w-full mb-3"
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button className="w-full py-3 bg-white text-black font-semibold rounded-lg hover:scale-105 transition">
+        <button
+          onClick={handleLogin}
+          className="bg-black text-white w-full p-2 rounded"
+        >
           Masuk
         </button>
       </div>

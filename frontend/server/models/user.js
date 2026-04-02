@@ -2,21 +2,16 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const User = sequelize.define('User', {
-  username: {
+  name: DataTypes.STRING,
+  email: {
     type: DataTypes.STRING,
-    allowNull: false
+    unique: true
   },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
+  password: DataTypes.STRING,
   role: {
     type: DataTypes.STRING,
     defaultValue: 'user'
   }
-}, {
-  tableName: 'Users', // pastikan sama dengan di MySQL
-  timestamps: false   // kalau kamu gak pakai createdAt & updatedAt
 });
 
 module.exports = User;
