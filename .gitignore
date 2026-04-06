@@ -1,8 +1,15 @@
-node_modules
-.env
-dist
-build
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
 
-frontend/node_modules
-parfum-shop/node_modules
-parfum-shop/server/node_modules
+# Environment Variables
+.env
+
+# Uploaded files
+parfum-shop/uploads/*
+!parfum-shop/uploads/.gitkeep
+
+# Frontend build
+frontend/dist/
+frontend/build/

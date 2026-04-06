@@ -1,14 +1,6 @@
 const { Sequelize } = require('sequelize');
-
-const sequelize = new Sequelize(
-  'parfum_shop',   // NAMA DATABASE
-  'root',          // USERNAME
-  '',              // PASSWORD
-  {
+const sequelize = new Sequelize('parfum_shop', 'root', '', {
     host: 'localhost',
-    dialect: 'mysql',
-    logging: false,
-  }
-);
-
+    dialect: 'mysql'
+});
 module.exports = sequelize;

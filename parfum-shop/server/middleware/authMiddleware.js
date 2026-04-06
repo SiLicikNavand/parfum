@@ -1,26 +1,33 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+// Fungsi untuk mengecek apakah user sudah login (punya token)
+const verifyToken = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
 
-  if (!authHeader) {
-    return res.status(401).json({ message: "Token tidak ada" });
-  }
-
-  const token = authHeader.split(" ")[1]; // Bearer token
-
-  if (!token) {
-    return res.status(401).json({ message: "Format token salah" });
-  }
-
-  jwt.verify(token, "RAHASIA_JWT", (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: "Token tidak valid" });
+    if (!token) {
+        return res.status(403).json({ message: 'Akses ditolak! Token tidak ditemukan.' });
     }
 
-    req.user = decoded; // simpan id & role
-    next();
-  });
+    // Rahasia token diambil dari .env (kalau tidak ada, pakai default)
+    const secret = process.env.JWT_SECRET || 'rahasia_parfum_super_aman_123';
+
+    jwt.verify(token, secret, (err, decoded) => {
+        if (err) {
+            return res.status(401).json({ message: 'Token tidak valid atau kadaluarsa. Silakan login ulang.' });
+        }
+        req.user = decoded; 
+        next();
+    });
 };
 
-module.exports = authMiddleware;
+// Fungsi khusus mengecek Admin
+const isAdmin = (req, res, next) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Akses ditolak! Fitur ini hanya untuk Admin.' });
+    }
+    next();
+};
+
+module.exports = { verifyToken, isAdmin };

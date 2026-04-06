@@ -1,187 +1,58 @@
-import React, { useState } from 'react'
-import { Routes, Route, Link, useNavigate, useParams } from 'react-router-dom'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-const PRODUCTS = [
-  {
-    id: 1,
-    name: 'Coffee Latte',
-    price: 25000,
-    desc: 'Kopi susu creamy dengan rasa balance antara pahit dan manis.',
-    image: 'https://source.unsplash.com/400x400/?coffee'
-  },
-  {
-    id: 2,
-    name: 'Matcha Latte',
-    price: 30000,
-    desc: 'Minuman matcha segar dengan susu lembut.',
-    image: 'https://source.unsplash.com/400x400/?matcha'
-  },
-  {
-    id: 3,
-    name: 'Chocolate Ice',
-    price: 28000,
-    desc: 'Minuman coklat dingin yang rich dan manis.',
-    image: 'https://source.unsplash.com/400x400/?chocolate'
-  }
-]
+// IMPORT PAGES
+import Shop from './pages/Shop';
+import Detail from './pages/Detail';
+import Cart from './pages/Cart';
+import Login from './pages/login';
+import Register from './pages/Register';
 
-export default function App() {
-  const [cart, setCart] = useState([])
+// IMPORT COMPONENTS (NAVBAR)
+import Navbar from './components/Navbar';
 
-  const addToCart = (product, qty) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id)
-      if (existing) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, qty: item.qty + qty }
-            : item
-        )
-      }
-      return [...prev, { ...product, qty }]
-    })
-  }
+// IMPORT ADMIN PAGES (Jika ada)
+import Dashboard from './pages/admin/Dashboard';
+import Products from './pages/admin/Products';
 
+function App() {
   return (
-    <>
-      <Navbar cart={cart} />
+    <Router>
+      {/* Navbar muncul di semua halaman */}
+      <Navbar /> 
+      
+      <div className="min-h-screen bg-gray-50">
+        <Routes>
+          {/* 1. HALAMAN UTAMA (Otomatis ke Shop) */}
+          <Route path="/" element={<Navigate to="/shop" />} />
+          <Route path="/shop" element={<Shop />} />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/product/:id" element={<Detail addToCart={addToCart} />} />
-        <Route path="/cart" element={<Cart cart={cart} />} />
-      </Routes>
-    </>
-  )
-}
+          {/* 2. HALAMAN DETAIL PRODUK */}
+          <Route path="/product/:id" element={<Detail />} />
 
-function Navbar({ cart }) {
-  return (
-    <div style={styles.nav}>
-      <Link to="/">Home</Link>
-      <Link to="/cart">
-        🛒 Cart ({cart.reduce((a, b) => a + b.qty, 0)})
-      </Link>
-    </div>
-  )
-}
+          {/* 3. HALAMAN KERANJANG */}
+          <Route path="/cart" element={<Cart />} />
 
-function Home() {
-  const navigate = useNavigate()
+          {/* 4. HALAMAN AUTH */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-  return (
-    <div style={styles.container}>
-      <h2>Menu Produk</h2>
+          {/* 5. HALAMAN ADMIN (Opsional) */}
+          <Route path="/admin/dashboard" element={<Dashboard />} />
+          <Route path="/admin/products" element={<Products />} />
 
-      <div style={styles.grid}>
-        {PRODUCTS.map(p => (
-          <div key={p.id} style={styles.card} onClick={() => navigate(`/product/${p.id}`)}>
-            <img src={p.image} style={styles.image} />
-            <h3>{p.name}</h3>
-            <p>Rp {p.price.toLocaleString()}</p>
-          </div>
-        ))}
+          {/* 6. JIKA URL TIDAK DITEMUKAN (ERROR 404) */}
+          <Route path="*" element={
+            <div className="flex flex-col items-center justify-center h-screen">
+              <h1 className="text-9xl font-black text-gray-200">404</h1>
+              <p className="text-gray-400 font-bold uppercase tracking-widest">Halaman Tidak Ditemukan</p>
+              <button onClick={() => window.location.href='/shop'} className="mt-6 bg-indigo-600 text-white px-8 py-3 rounded-xl">Balik Ke Toko</button>
+            </div>
+          } />
+        </Routes>
       </div>
-    </div>
-  )
+    </Router>
+  );
 }
 
-function Detail({ addToCart }) {
-  const { id } = useParams()
-  const navigate = useNavigate()
-
-  const product = PRODUCTS.find(p => p.id === parseInt(id))
-  const [qty, setQty] = useState(1)
-
-  if (!product) return <p>Produk tidak ditemukan</p>
-
-  return (
-    <div style={styles.detailContainer}>
-      <button onClick={() => navigate(-1)}>← Back</button>
-
-      <img src={product.image} style={styles.detailImage} />
-
-      <h2>{product.name}</h2>
-      <h3>Rp {product.price.toLocaleString()}</h3>
-
-      <p>{product.desc}</p>
-
-      <div style={{ margin: '20px 0' }}>
-        <button onClick={() => setQty(qty > 1 ? qty - 1 : 1)}>-</button>
-        <span style={{ margin: '0 15px' }}>{qty}</span>
-        <button onClick={() => setQty(qty + 1)}>+</button>
-      </div>
-
-      <button
-        style={styles.button}
-        onClick={() => {
-          addToCart(product, qty)
-          navigate('/cart')
-        }}
-      >
-        Add to Cart
-      </button>
-    </div>
-  )
-}
-
-function Cart({ cart }) {
-  return (
-    <div style={styles.container}>
-      <h2>Keranjang</h2>
-
-      {cart.length === 0 && <p>Keranjang kosong</p>}
-
-      {cart.map(item => (
-        <div key={item.id} style={styles.card}>
-          <h3>{item.name}</h3>
-          <p>Qty: {item.qty}</p>
-          <p>Total: Rp {(item.price * item.qty).toLocaleString()}</p>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-const styles = {
-  nav: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    padding: '15px',
-    borderBottom: '1px solid #ddd'
-  },
-  container: {
-    padding: '20px'
-  },
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-    gap: '15px'
-  },
-  card: {
-    border: '1px solid #ddd',
-    padding: '10px',
-    borderRadius: '10px',
-    cursor: 'pointer'
-  },
-  image: {
-    width: '100%',
-    borderRadius: '10px'
-  },
-  detailContainer: {
-    padding: '20px'
-  },
-  detailImage: {
-    width: '100%',
-    maxWidth: '400px',
-    borderRadius: '10px'
-  },
-  button: {
-    padding: '10px 15px',
-    background: 'black',
-    color: 'white',
-    border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer'
-  }
-}
+export default App;
