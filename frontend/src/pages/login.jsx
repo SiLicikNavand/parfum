@@ -17,8 +17,6 @@ const Login = () => {
         setLoading(true);
         setErrorMsg(''); // Reset error setiap kali mencoba login
 
-        console.log("🚀 Mencoba Login ke Backend...");
-
         try {
             // Mengirim data ke API Backend Port 5000
             const res = await axios.post('http://localhost:5000/api/auth/login', {
@@ -26,17 +24,16 @@ const Login = () => {
                 password: password
             });
 
-            console.log("✅ LOGIN BERHASIL:", res.data);
-
-            // SIMPAN DATA SAKTI KE LOCALSTORAGE (WAJIB BUAT KERANJANG & XENDIT)
+            // 1. SIMPAN TOKEN (Untuk Authorization Bearer di Middleware)
             localStorage.setItem('token', res.data.token);
-            // Simpan object user (ID, Username, Role)
+            
+            // 2. SIMPAN OBJECT USER (Untuk keperluan Dashboard/UI)
             localStorage.setItem('user', JSON.stringify(res.data.user));
 
-            // Alert Sukses yang Keren
+            // Notifikasi Sukses
             alert(`Selamat Datang Kembali, ${res.data.user.username}! ✨`);
 
-            // CEK ROLE: Jika admin ke Dashboard, jika user ke Katalog Shop
+            // 3. REDIRECT BERDASARKAN ROLE (Poin B.30 Ujikom)
             if (res.data.user.role === 'admin') {
                 navigate('/admin/dashboard');
             } else {
@@ -44,20 +41,16 @@ const Login = () => {
             }
 
         } catch (err) {
-            console.error("❌ ERROR LOGIN:", err.response?.data || err.message);
-            
             // Tangkap pesan error dari backend
-            const message = err.response?.data?.message || "Koneksi ke server gagal!";
+            const message = err.response?.data?.message || "Username atau Password salah!";
             setErrorMsg(message);
-            
-            alert("GAGAL LOGIN: " + message);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6">
+        <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6 relative overflow-hidden">
             {/* Background Decor (Aura Indigo) */}
             <div className="fixed top-0 left-0 w-full h-full overflow-hidden -z-10">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-100 rounded-full blur-[120px] opacity-50"></div>
@@ -70,7 +63,7 @@ const Login = () => {
                     
                     {/* Header Form */}
                     <div className="mb-10 text-center">
-                        <div className="w-20 h-20 bg-indigo-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-indigo-200 rotate-6 group hover:rotate-0 transition-transform duration-500">
+                        <div className="w-20 h-20 bg-indigo-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg shadow-indigo-200 rotate-6 hover:rotate-0 transition-transform duration-500">
                             <span className="text-white text-3xl font-black italic">P</span>
                         </div>
                         <h1 className="text-5xl font-black text-gray-900 leading-none uppercase tracking-tighter italic">Sign In</h1>
@@ -79,8 +72,8 @@ const Login = () => {
 
                     {/* Pesan Error Jika Gagal */}
                     {errorMsg && (
-                        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-xl animate-shake">
-                            <p className="text-red-600 text-xs font-bold uppercase tracking-widest">{errorMsg}</p>
+                        <div className="bg-red-50 border-l-4 border-red-500 p-3 mb-6 rounded-xl">
+                            <p className="text-red-600 text-[10px] font-black uppercase tracking-widest">{errorMsg}</p>
                         </div>
                     )}
 
@@ -91,7 +84,7 @@ const Login = () => {
                             <input 
                                 type="text" 
                                 placeholder="Enter your username..." 
-                                className="w-full p-5 bg-gray-50 border-none rounded-[25px] focus:ring-2 focus:ring-indigo-600 font-bold text-gray-700 transition-all"
+                                className="w-full p-5 bg-gray-50 border-none rounded-[25px] focus:ring-2 focus:ring-indigo-600 font-bold text-gray-700 outline-none transition-all"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 required 
@@ -103,7 +96,7 @@ const Login = () => {
                             <input 
                                 type="password" 
                                 placeholder="••••••••" 
-                                className="w-full p-5 bg-gray-50 border-none rounded-[25px] focus:ring-2 focus:ring-indigo-600 font-bold text-gray-700 transition-all"
+                                className="w-full p-5 bg-gray-50 border-none rounded-[25px] focus:ring-2 focus:ring-indigo-600 font-bold text-gray-700 outline-none transition-all"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required 
@@ -136,6 +129,7 @@ const Login = () => {
                         </p>
                         <div className="h-px w-20 bg-gray-100 mx-auto"></div>
                         <button 
+                            type="button"
                             onClick={() => navigate('/shop')}
                             className="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] hover:text-indigo-600 transition-colors"
                         >
@@ -144,9 +138,8 @@ const Login = () => {
                     </div>
                 </div>
 
-                {/* Copyright Decor */}
                 <p className="text-center mt-10 text-gray-300 text-[10px] font-bold uppercase tracking-[0.5em]">
-                    S*CKSOCKS • PARFUM • 2026
+                    PARFUM SHOP • 2026
                 </p>
             </div>
         </div>

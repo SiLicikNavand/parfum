@@ -1,11 +1,15 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
+// Import controller yang menangani logika statistik
+const adminController = require('../controllers/adminController');
 
-const authMiddleware = require("../middleware/authMiddleware");
-const adminMiddleware = require("../middleware/adminMiddleware");
+// Pastikan penulisan endpoint-nya benar
+// URL: http://localhost:5000/api/admin/dashboard
+router.get('/dashboard', adminController.getDashboardStats);
 
-router.get("/admin-test", authMiddleware, adminMiddleware, (req, res) => {
-  res.json({ message: "Halo Admin 👑" });
-});
+/** * Jika kedepannya kamu butuh proteksi (hanya admin yang bisa akses), 
+ * kamu bisa tambahkan middleware di sini:
+ * router.get('/dashboard', verifyToken, isAdmin, adminController.getDashboardStats);
+ */
 
 module.exports = router;

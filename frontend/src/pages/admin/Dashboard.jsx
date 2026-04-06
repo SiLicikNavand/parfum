@@ -1,291 +1,91 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { Package, Users, ShoppingCart, DollarSign, Activity, Clock } from 'lucide-react';
 
-export default function Admin() {
-  const navigate = useNavigate();
+const Dashboard = () => {
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  const [products, setProducts] = useState([]);
-  const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState(null);
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/admin/dashboard');
+                setStats(res.data.data);
+            } catch (err) {
+                console.error("Fetch Error:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchStats();
+    }, []);
 
-  const [showDelete, setShowDelete] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-
-  const [form, setForm] = useState({
-    name: "",
-    price: "",
-    stock: "",
-    image: null
-  });
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
-  const fetchProducts = async () => {
-    const res = await fetch("http://localhost:3000/products");
-    const data = await res.json();
-    setProducts(data);
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  // SUBMIT (CREATE / UPDATE + IMAGE)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("price", form.price);
-    formData.append("stock", form.stock);
-    if (form.image) {
-      formData.append("image", form.image);
-    }
-
-    if (editId) {
-      await fetch(`http://localhost:3000/products/${editId}`, {
-        method: "PUT",
-        body: formData
-      });
-    } else {
-      await fetch("http://localhost:3000/products", {
-        method: "POST",
-        body: formData
-      });
-    }
-
-    setShowForm(false);
-    setEditId(null);
-    setForm({ name: "", price: "", stock: "", image: null });
-    fetchProducts();
-  };
-
-  // DELETE
-  const openDelete = (id) => {
-    setDeleteId(id);
-    setShowDelete(true);
-  };
-
-  const confirmDelete = async () => {
-    await fetch(`http://localhost:3000/products/${deleteId}`, {
-      method: "DELETE"
-    });
-
-    setShowDelete(false);
-    setDeleteId(null);
-    fetchProducts();
-  };
-
-  const handleEdit = (item) => {
-    setForm({
-      name: item.name,
-      price: item.price,
-      stock: item.stock,
-      image: null
-    });
-    setEditId(item.id);
-    setShowForm(true);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
-
-      {/* NAVBAR */}
-      <div className="flex justify-between items-center p-6 border-b border-gray-800">
-        <h1 className="text-2xl font-bold text-cyan-400">
-          Parfum Admin
-        </h1>
-
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600"
-        >
-          Logout
-        </button>
-      </div>
-
-      <div className="p-6">
-
-        {/* HEADER */}
-        <div className="flex justify-between mb-6">
-          <h2 className="text-xl">Produk</h2>
-
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setEditId(null);
-              setForm({ name: "", price: "", stock: "", image: null });
-            }}
-            className="px-4 py-2 bg-cyan-500 rounded-lg"
-          >
-            + Tambah Produk
-          </button>
+    if (loading) return (
+        <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-indigo-600"></div>
         </div>
+    );
 
-        {/* FORM */}
-        {showForm && (
-          <div className="bg-black/70 fixed inset-0 flex items-center justify-center">
-            <div className="bg-gray-900 p-6 rounded-xl w-80">
-              <h2 className="mb-4">
-                {editId ? "Edit Produk" : "Tambah Produk"}
-              </h2>
+    const cards = [
+        { title: 'Total Inventory', value: stats?.products, icon: <Package size={24}/>, color: 'bg-blue-600', shadow: 'shadow-blue-200' },
+        { title: 'Registered Users', value: stats?.customers, icon: <Users size={24}/>, color: 'bg-purple-600', shadow: 'shadow-purple-200' },
+        { title: 'Monthly Orders', value: stats?.orders, icon: <ShoppingCart size={24}/>, color: 'bg-orange-500', shadow: 'shadow-orange-200' },
+        { title: 'Gross Revenue', value: `Rp ${stats?.revenue.toLocaleString()}`, icon: <DollarSign size={24}/>, color: 'bg-emerald-500', shadow: 'shadow-emerald-200' },
+    ];
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Nama"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="p-2 bg-gray-800 rounded"
-                  required
-                />
-
-                <input
-                  type="number"
-                  name="price"
-                  placeholder="Harga"
-                  value={form.price}
-                  onChange={handleChange}
-                  className="p-2 bg-gray-800 rounded"
-                  required
-                />
-
-                <input
-                  type="number"
-                  name="stock"
-                  placeholder="Stok"
-                  value={form.stock}
-                  onChange={handleChange}
-                  className="p-2 bg-gray-800 rounded"
-                  required
-                />
-
-                {/* 🔥 INPUT GAMBAR */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setForm({ ...form, image: e.target.files[0] })
-                  }
-                  className="p-2 bg-gray-800 rounded"
-                />
-
-                <div className="flex gap-2 mt-2">
-                  <button className="bg-cyan-500 px-3 py-2 rounded">
-                    Simpan
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setShowForm(false)}
-                    className="bg-gray-700 px-3 py-2 rounded"
-                  >
-                    Batal
-                  </button>
+    return (
+        <div className="p-10 bg-[#fafafa] min-h-screen w-full">
+            {/* WELCOME HEADER */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+                <div>
+                    <h1 className="text-5xl font-black text-gray-900 tracking-tighter italic uppercase">
+                        System <span className="text-indigo-600">Overview</span>
+                    </h1>
+                    <p className="text-gray-400 font-bold text-xs uppercase tracking-[0.4em] mt-2">Real-time Performance Analytics</p>
                 </div>
-
-              </form>
+                <div className="flex items-center gap-4 bg-white p-4 rounded-3xl shadow-sm border border-gray-100">
+                    <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Server Status: {stats?.serverStatus}</span>
+                </div>
             </div>
-          </div>
-        )}
 
-        {/* DELETE MODAL */}
-        {showDelete && (
-          <div className="bg-black/70 fixed inset-0 flex items-center justify-center">
-            <div className="bg-gray-900 p-6 rounded-xl text-center">
-              <h2 className="text-red-400 mb-4">
-                Yakin ingin menghapus?
-              </h2>
-
-              <div className="flex justify-center gap-3">
-                <button
-                  onClick={confirmDelete}
-                  className="bg-red-500 px-4 py-2 rounded"
-                >
-                  Hapus
-                </button>
-
-                <button
-                  onClick={() => setShowDelete(false)}
-                  className="bg-gray-700 px-4 py-2 rounded"
-                >
-                  Batal
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* TABLE */}
-        <div className="overflow-x-auto bg-gray-900 rounded-xl">
-          <table className="w-full table-fixed text-center">
-
-            <thead className="bg-gray-800 text-cyan-400">
-              <tr>
-                <th className="p-4">Gambar</th>
-                <th className="p-4">Nama</th>
-                <th className="p-4">Harga</th>
-                <th className="p-4">Stok</th>
-                <th className="p-4">Aksi</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {products.map((item) => (
-                <tr key={item.id} className="border-t border-gray-700">
-
-                  {/* 🔥 GAMBAR */}
-                  <td className="p-4">
-                    {item.image && (
-                      <img
-                        src={`http://localhost:3000/uploads/${item.image}`}
-                        className="w-16 h-16 object-cover rounded-lg mx-auto"
-                      />
-                    )}
-                  </td>
-
-                  <td className="p-4">{item.name}</td>
-                  <td className="p-4">Rp {item.price}</td>
-                  <td className="p-4">{item.stock}</td>
-
-                  <td className="p-4">
-                    <div className="flex justify-center gap-2">
-                      <button
-                        onClick={() => handleEdit(item)}
-                        className="bg-yellow-500 px-3 py-1 rounded"
-                      >
-                        Edit
-                      </button>
-
-                      <button
-                        onClick={() => openDelete(item.id)}
-                        className="bg-red-500 px-3 py-1 rounded"
-                      >
-                        Hapus
-                      </button>
+            {/* STATS GRID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-12">
+                {cards.map((item, index) => (
+                    <div key={index} className="bg-white p-8 rounded-[40px] border border-gray-50 shadow-2xl shadow-gray-200/50 hover:scale-105 transition-transform duration-500 group">
+                        <div className={`${item.color} ${item.shadow} w-16 h-16 rounded-2xl flex items-center justify-center text-white mb-6 group-hover:rotate-6 transition-transform`}>
+                            {item.icon}
+                        </div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">{item.title}</p>
+                        <h2 className="text-3xl font-black text-gray-900 tracking-tight">{item.value}</h2>
                     </div>
-                  </td>
+                ))}
+            </div>
 
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
+            {/* SYSTEM LOGS SECTION */}
+            <div className="bg-gray-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl">
+                <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <div className="flex items-center gap-3 mb-6">
+                            <Activity className="text-indigo-400" />
+                            <h3 className="text-xl font-black uppercase italic">Operational Excellence</h3>
+                        </div>
+                        <p className="text-gray-400 font-medium leading-relaxed mb-8">
+                            Semua modul sistem (Auth, Inventory, & Payment) berjalan optimal. Database sinkronisasi terakhir dilakukan pada pukul <span className="text-indigo-400 font-bold">{stats?.lastUpdate}</span>.
+                        </p>
+                        <button className="bg-indigo-600 hover:bg-white hover:text-indigo-600 text-white px-10 py-4 rounded-2xl font-black transition-all text-xs uppercase tracking-widest shadow-xl">
+                            Generate Report
+                        </button>
+                    </div>
+                    <div className="hidden lg:flex justify-end">
+                        <Clock size={200} className="text-white/5 -mr-10" />
+                    </div>
+                </div>
+                {/* Abstract Decor */}
+                <div className="absolute top-[-20%] right-[-10%] w-80 h-80 bg-indigo-600/20 rounded-full blur-[120px]"></div>
+            </div>
         </div>
+    );
+};
 
-      </div>
-    </div>
-  );
-}    
+export default Dashboard;
