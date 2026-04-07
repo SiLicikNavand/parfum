@@ -1,17 +1,26 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const dotenv = require('dotenv');
 const { Xendit } = require('xendit-node');
+const { Transaction } = require('../models');
+
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 // --- INISIALISASI XENDIT SAKTI ---
 const xenditClient = new Xendit({
-    secretKey: 'xnd_public_development_CnF6QhjeF4p6F2ETENTCICQnwYUO4RFqL0230UBZWgMUbZatbW_A970FEq5EmMI' 
+    secretKey: process.env.XENDIT_SECRET_KEY || ''
 });
 
 const { Invoice } = xenditClient;
 
 router.post('/create-invoice', async (req, res) => {
     try {
-        const { amount, customerEmail, description } = req.body;
+        if (!process.env.XENDIT_SECRET_KEY) {
+            return res.status(500).json({ message: 'XENDIT_SECRET_KEY tidak tersedia di environment.' });
+        }
+
+        const { amount, customerEmail, description, itemSummary } = req.body;
 
         console.log("-----------------------------------------");
         console.log("🚀 [SYSTEM] MEMPROSES PESANAN BARU");
@@ -29,16 +38,18 @@ router.post('/create-invoice', async (req, res) => {
         }
 
         // 2. DATA UNTUK XENDIT (FORMAT SDK V3)
+        const externalId = `INV-${Date.now()}-${Math.floor(Math.random() * 9999)}`;
+        const frontendBaseUrl = req.headers.origin || process.env.FRONTEND_URL || 'http://localhost:5173';
         const invoicePayload = {
             data: {
-                externalId: `INV-${Date.now()}-${Math.floor(Math.random() * 9999)}`,
+                externalId,
                 amount: finalAmount,
                 payerEmail: customerEmail || "pembeli@gmail.com",
-                description: description || "Pembayaran Exclusive Parfum Shop",
+                description: description || "Pembayaran Wangiin",
                 invoiceDuration: 86400, // Aktif 24 jam
                 currency: 'IDR',
-                successRedirectUrl: 'http://localhost:5173/cart',
-                failureRedirectUrl: 'http://localhost:5173/cart'
+                successRedirectUrl: `${frontendBaseUrl}/cart?payment=success&trx=${externalId}`,
+                failureRedirectUrl: `${frontendBaseUrl}/cart?payment=failed&trx=${externalId}`
             }
         };
 
@@ -46,12 +57,19 @@ router.post('/create-invoice', async (req, res) => {
         console.log("📡 Sedang menghubungi server Xendit...");
         const response = await Invoice.createInvoice(invoicePayload);
 
+        await Transaction.create({
+            external_id: externalId,
+            amount: finalAmount,
+            status: 'PENDING',
+            payment_url: response.invoiceUrl
+        });
+
         console.log("✅ INVOICE BERHASIL DIBUAT!");
         console.log("🔗 URL PEMBAYARAN:", response.invoiceUrl);
         console.log("-----------------------------------------");
         
         // Kirim link pembayaran ke frontend
-        return res.status(200).json(response.invoiceUrl);
+        return res.status(200).json({ invoiceUrl: response.invoiceUrl, externalId });
 
     } catch (err) {
         console.error("-----------------------------------------");
@@ -79,6 +97,23 @@ router.post('/create-invoice', async (req, res) => {
             message: "Gagal membuat invoice",
             detail: errorDetail
         });
+    }
+});
+
+// Fallback update status jika webhook terlambat/tidak masuk
+router.patch('/mark-paid/:externalId', async (req, res) => {
+    try {
+        const { externalId } = req.params;
+        const transaction = await Transaction.findOne({ where: { external_id: externalId } });
+
+        if (!transaction) {
+            return res.status(404).json({ message: 'Transaksi tidak ditemukan.' });
+        }
+
+        await transaction.update({ status: 'PAID' });
+        return res.status(200).json({ message: 'Transaksi berhasil ditandai PAID.' });
+    } catch (err) {
+        return res.status(500).json({ message: 'Gagal update status transaksi.', error: err.message });
     }
 });
 

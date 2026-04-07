@@ -9,7 +9,7 @@ const User = sequelize.define('User', {
     },
     email: {
         type: DataTypes.STRING,
-        allowNull: false, // WAJIB ADA sesuai error tadi
+        allowNull: false,
         unique: true,
         validate: { isEmail: true }
     },
@@ -21,8 +21,9 @@ const User = sequelize.define('User', {
         type: DataTypes.ENUM('admin', 'customer'),
         defaultValue: 'customer'
     }
-}, {
-    timestamps: true
+}, { 
+    tableName: 'users',
+    timestamps: true 
 });
 
 module.exports = User;

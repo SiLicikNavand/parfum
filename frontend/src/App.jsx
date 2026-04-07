@@ -1,69 +1,76 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-// PAGES
+// PUBLIC PAGES
+import Home from './pages/Home';
 import Shop from './pages/Shop';
 import Detail from './pages/Detail';
 import Cart from './pages/Cart';
-import Login from './pages/Login';
+import Login from './pages/login';
 import Register from './pages/Register';
 
 // ADMIN PAGES
 import Dashboard from './pages/admin/Dashboard';
 import Products from './pages/admin/Products';
+import Transactions from './pages/admin/Transactions';
 
-// COMPONENTS
-import Navbar from './components/Navbar';
-import AdminSidebar from './components/AdminSidebar';
-import { CartProvider } from './context/CartContext';
+// LAYOUTS
+import MainLayout from './layouts/MainLayout';
+import AdminLayout from './layouts/AdminLayout';
 
-const AppLayout = () => {
-    const location = useLocation();
-    const isAdminPath = location.pathname.startsWith('/admin');
+// Route protector untuk halaman Admin
+const ProtectedRoute = ({ children, requiredRole }) => {
+    const userData = localStorage.getItem('user');
+    const user = userData ? JSON.parse(userData) : null;
 
-    return (
-        <div className={isAdminPath ? "flex bg-[#fafafa] min-h-screen" : "min-h-screen bg-white"}>
-            {/* Sidebar Muncul HANYA di path Admin */}
-            {isAdminPath && <AdminSidebar />}
+    // Jika belum login, paksa ke halaman login
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
 
-            {/* Navbar Muncul HANYA di path Non-Admin */}
-            {!isAdminPath && <Navbar />}
+    // Jika sudah login tapi bukan role yang diminta (misalnya bukan admin)
+    if (requiredRole && user.role !== requiredRole) {
+        return <Navigate to="/shop" replace />;
+    }
 
-            <main className={isAdminPath ? "flex-1 overflow-x-hidden" : "w-full"}>
-                <Routes>
-                    {/* PUBLIC ROUTES */}
-                    <Route path="/" element={<Navigate to="/shop" replace />} />
-                    <Route path="/shop" element={<Shop />} />
-                    <Route path="/product/:id" element={<Detail />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/register" element={<Register />} />
-
-                    {/* PRIVATE ADMIN ROUTES */}
-                    <Route path="/admin/dashboard" element={<Dashboard />} />
-                    <Route path="/admin/products" element={<Products />} />
-
-                    {/* 404 PAGE */}
-                    <Route path="*" element={
-                        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center">
-                            <h1 className="text-[120px] font-black text-gray-100 leading-none">404</h1>
-                            <p className="text-gray-400 font-bold uppercase tracking-[0.5em] -mt-6 mb-10">Lost in Space</p>
-                            <button onClick={() => window.location.href='/shop'} className="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black shadow-2xl">Return Home</button>
-                        </div>
-                    } />
-                </Routes>
-            </main>
-        </div>
-    );
+    return children;
 };
 
 function App() {
     return (
-        <CartProvider>
-            <Router>
-                <AppLayout />
-            </Router>
-        </CartProvider>
+        <Router>
+            <Routes>
+                {/* LAYOUT UTAMA USER */}
+                <Route element={<MainLayout />}>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/shop" element={<Shop />} />
+                    <Route path="/shop/:category" element={<Shop />} />
+                    <Route path="/product/:id" element={<Detail />} />
+                    <Route path="/cart" element={<Cart />} />
+                </Route>
+
+                {/* AUTH PAGES */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+
+                {/* LAYOUT ADMIN + PROTECTED ROUTE */}
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute requiredRole="admin">
+                            <AdminLayout />
+                        </ProtectedRoute>
+                    }
+                >
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="products" element={<Products />} />
+                    <Route path="transactions" element={<Transactions />} />
+                </Route>
+
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </Router>
     );
 }
 

@@ -1,26 +1,23 @@
 const express = require('express');
 const router = express.Router();
-const { Order, Payment } = require('../models');
+const { Transaction } = require('../models');
 
 router.post('/', async (req, res) => {
-    const { status, external_id } = req.body;
-    console.log(`📡 WEBHOOK RECEIVED: ${external_id} - STATUS: ${status}`);
+    const status = req.body.status || req.body.invoice_status;
+    const externalId = req.body.external_id || req.body.externalId;
+    const normalizedStatus = String(status || '').toUpperCase();
+
+    if (!externalId) {
+        return res.status(400).send('Missing external_id');
+    }
+    console.log(`📡 WEBHOOK RECEIVED: ${externalId} - STATUS: ${normalizedStatus}`);
 
     try {
-        const payment = await Payment.findOne({ where: { externalId: external_id } });
-        if (payment) {
-            const newStatus = status === 'PAID' ? 'PAID' : 'FAILED';
-            
-            // Update tabel Payment
-            await payment.update({ paymentStatus: newStatus });
-            
-            // Update tabel Order (Relasi Poin A.5)
-            await Order.update(
-                { status: newStatus }, 
-                { where: { id: payment.orderId } }
-            );
-
-            console.log(`✅ DATABASE UPDATED: Order #${payment.orderId} is ${newStatus}`);
+        const transaction = await Transaction.findOne({ where: { external_id: externalId } });
+        if (transaction) {
+            const newStatus = normalizedStatus === 'PAID' ? 'PAID' : normalizedStatus === 'PENDING' ? 'PENDING' : 'FAILED';
+            await transaction.update({ status: newStatus });
+            console.log(`✅ DATABASE UPDATED: Transaction ${externalId} is ${newStatus}`);
         }
         res.status(200).send('OK');
     } catch (err) {

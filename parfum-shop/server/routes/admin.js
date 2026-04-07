@@ -6,6 +6,7 @@ const adminController = require('../controllers/adminController');
 // Pastikan penulisan endpoint-nya benar
 // URL: http://localhost:5000/api/admin/dashboard
 router.get('/dashboard', adminController.getDashboardStats);
+router.get('/transactions-paid', adminController.getPaidTransactions);
 
 /** * Jika kedepannya kamu butuh proteksi (hanya admin yang bisa akses), 
  * kamu bisa tambahkan middleware di sini:

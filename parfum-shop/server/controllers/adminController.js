@@ -1,4 +1,4 @@
-const { Product, User } = require('../models');
+const { Product, User, Transaction } = require('../models');
 
 exports.getDashboardStats = async (req, res) => {
     try {
@@ -9,9 +9,8 @@ exports.getDashboardStats = async (req, res) => {
         const totalUsers = await User.count({ where: { role: 'customer' } });
         const totalAdmins = await User.count({ where: { role: 'admin' } });
 
-        // Simulasi data transaksi (bisa diupdate kalau tabel transaksi sudah ada)
-        const totalOrders = 24; 
-        const totalRevenue = 5400000;
+        const totalOrders = await Transaction.count();
+        const totalRevenue = await Transaction.sum('amount', { where: { status: 'PAID' } }) || 0;
 
         res.status(200).json({
             success: true,
@@ -31,6 +30,26 @@ exports.getDashboardStats = async (req, res) => {
         res.status(500).json({
             success: false,
             message: "Internal Server Error: Statistik Gagal Dimuat",
+            error: err.message
+        });
+    }
+};
+
+exports.getPaidTransactions = async (req, res) => {
+    try {
+        const paidTransactions = await Transaction.findAll({
+            where: { status: 'PAID' },
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.status(200).json({
+            success: true,
+            data: paidTransactions
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: 'Gagal mengambil data transaksi PAID',
             error: err.message
         });
     }

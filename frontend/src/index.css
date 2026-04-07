@@ -1,12 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background: radial-gradient(
-    circle at top,
-    #2c5364,
-    #0f2027,
-    #000000
-  );
+  font-family: 'Inter', sans-serif;
+  background: #f7f5f2;
+}
+
+.font-brand {
+  font-family: 'Playfair Display', serif;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 900ms ease-out both;
 }

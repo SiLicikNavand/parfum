@@ -3,7 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { Product, Category } = require('../models'); // Mengambil model yang sudah berelasi
+const { Product } = require('../models');
 const { verifyToken, isAdmin } = require('../middleware/authMiddleware'); // Menggunakan middleware profesional
 
 // --- 1. KONFIGURASI PENYIMPANAN GAMBAR (Poin C.34) ---
@@ -23,7 +23,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 2 * 1024 * 1024 }, // Batas 2MB agar server tidak berat
+    limits: { fileSize: 8 * 1024 * 1024 }, // Batas upload dinaikkan jadi 8MB
     fileFilter: (req, file, cb) => {
         const fileTypes = /jpeg|jpg|png|webp/;
         const extName = fileTypes.test(path.extname(file.originalname).toLowerCase());
@@ -37,13 +37,9 @@ const upload = multer({
 });
 
 // --- 2. ROUTE: AMBIL SEMUA PRODUK (Public) ---
-// Termasuk data Kategori (Eager Loading) agar poin A.5 terpenuhi
 router.get('/', async (req, res) => {
     try {
-        const products = await Product.findAll({
-            include: [{ model: Category, as: 'category', attributes: ['name'] }],
-            order: [['createdAt', 'DESC']]
-        });
+        const products = await Product.findAll({ order: [['createdAt', 'DESC']] });
         res.status(200).json(products);
     } catch (err) {
         res.status(500).json({ message: "Gagal mengambil data produk: " + err.message });
@@ -53,9 +49,7 @@ router.get('/', async (req, res) => {
 // --- 3. ROUTE: DETAIL PRODUK PER ID (Public) ---
 router.get('/:id', async (req, res) => {
     try {
-        const product = await Product.findByPk(req.params.id, {
-            include: [{ model: Category, as: 'category' }]
-        });
+        const product = await Product.findByPk(req.params.id);
         if (!product) return res.status(404).json({ message: "Produk tidak ditemukan!" });
         res.status(200).json(product);
     } catch (err) {
@@ -66,7 +60,7 @@ router.get('/:id', async (req, res) => {
 // --- 4. ROUTE: TAMBAH PRODUK BARU (Admin Only - Poin B.30) ---
 router.post('/', verifyToken, isAdmin, upload.single('image'), async (req, res) => {
     try {
-        const { name, price, description, categoryId } = req.body;
+        const { name, price, description, stock, category, type } = req.body;
         
         if (!req.file) {
             return res.status(400).json({ message: "Wajib mengupload gambar produk!" });
@@ -76,7 +70,9 @@ router.post('/', verifyToken, isAdmin, upload.single('image'), async (req, res) 
             name,
             price: parseFloat(price),
             description,
-            categoryId: categoryId, // Menggunakan ID Kategori dari database
+            stock: Number(stock) || 0,
+            category: category || 'Unisex',
+            type: type || 'New Release',
             image: req.file.filename
         });
 
@@ -96,7 +92,7 @@ router.put('/:id', verifyToken, isAdmin, upload.single('image'), async (req, res
         const product = await Product.findByPk(req.params.id);
         if (!product) return res.status(404).json({ message: "Produk tidak ditemukan!" });
 
-        const { name, price, description, categoryId } = req.body;
+        const { name, price, description, stock, category, type } = req.body;
         let imageName = product.image;
 
         // Jika ada gambar baru, hapus gambar lama dan pakai yang baru
@@ -110,7 +106,9 @@ router.put('/:id', verifyToken, isAdmin, upload.single('image'), async (req, res
             name,
             price: parseFloat(price),
             description,
-            categoryId,
+            stock: Number(stock) || product.stock,
+            category: category || product.category,
+            type: type || product.type,
             image: imageName
         });
 

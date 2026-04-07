@@ -13,16 +13,21 @@ const Product = sequelize.define('Product', {
     description: { 
         type: DataTypes.TEXT 
     },
-    image: { 
-        type: DataTypes.STRING 
-    },
-    // Foreign Key ke tabel Categories (Sesuai Poin A.5 & A.23)
-    categoryId: {
+    stock: {
         type: DataTypes.INTEGER,
-        references: {
-            model: 'categories',
-            key: 'id'
-        }
+        defaultValue: 0
+    },
+    image: { 
+        type: DataTypes.STRING,
+        defaultValue: 'default_perfume.jpg'
+    },
+    category: {
+        type: DataTypes.ENUM('Men', 'Women', 'Unisex'),
+        defaultValue: 'Unisex'
+    },
+    type: {
+        type: DataTypes.ENUM('Collab', 'New Release', 'Best Seller'),
+        defaultValue: 'New Release'
     }
 }, { 
     tableName: 'products',

@@ -1,6 +1,17 @@
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Pastikan env terbaca dari root server
+dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
+
 const { Order, OrderItem, Payment, Product } = require('../models');
 const { Xendit } = require('xendit-node');
-const xenditClient = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY });
+
+if (!process.env.XENDIT_SECRET_KEY) {
+    console.warn('⚠️ XENDIT_SECRET_KEY tidak terdeteksi di env. Pembayaran Xendit akan gagal.');
+}
+
+const xenditClient = new Xendit({ secretKey: process.env.XENDIT_SECRET_KEY || '' });
 const { Invoice } = xenditClient;
 
 exports.checkout = async (req, res) => {
