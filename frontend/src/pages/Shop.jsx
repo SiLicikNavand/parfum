@@ -26,14 +26,14 @@ const Shop = () => {
     }, [products, category]);
 
     if (loading) return (
-        <div className="min-h-screen bg-[#f6f1e8] py-16">
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="min-h-screen pt-32 pb-20 px-6">
+            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {Array.from({ length: 8 }).map((_, index) => (
-                    <div key={index} className="bg-white rounded-xl p-4 shadow-md border border-amber-100 animate-pulse">
-                        <div className="h-56 bg-gray-200 rounded-lg mb-4"></div>
-                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-3"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2 mb-4"></div>
-                        <div className="h-10 bg-gray-200 rounded"></div>
+                    <div key={index} className="bg-white/5 border border-white/10 rounded-2xl p-5 animate-pulse backdrop-blur-sm">
+                        <div className="aspect-[3/4] bg-white/10 rounded-xl mb-6"></div>
+                        <div className="h-5 bg-white/20 rounded w-3/4 mb-3"></div>
+                        <div className="h-4 bg-white/10 rounded w-1/2 mb-6"></div>
+                        <div className="h-10 bg-white/20 rounded-lg"></div>
                     </div>
                 ))}
             </div>
@@ -41,41 +41,43 @@ const Shop = () => {
     );
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#f8f3ea] via-[#f3ede3] to-[#f8f3ea] pb-20">
-            <div className="pt-16 pb-10 px-10 text-center">
-                <h2 className="font-brand text-5xl text-gray-900">
-                    {category ? `${category.toUpperCase()} Collection` : 'Luxury Shop'}
+        <div className="min-h-screen pt-32 pb-20 relative z-10">
+            <div className="px-6 text-center mb-16 animate-fade-in-up">
+                <h2 className="font-brand text-5xl md:text-6xl text-white drop-shadow-md">
+                    {category ? `${category.toUpperCase()}` : 'THE COLLECTION'}
                 </h2>
-                <p className="text-gray-500 uppercase tracking-[0.25em] text-xs mt-4">Wangiin Premium Catalog</p>
+                <div className="w-24 h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent mx-auto mt-6"></div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                 {filteredProducts.map((product) => (
-                    <div key={product.id} className="group relative bg-white/90 backdrop-blur rounded-xl p-5 shadow-lg border border-amber-100 hover:shadow-2xl hover:-translate-y-1 transition overflow-hidden">
-                        <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-gray-50 mb-6 relative">
+                    <div key={product.id} className="group relative bg-black/40 backdrop-blur-xl rounded-2xl p-4 border border-white/10 hover:border-amber-500/50 transition-all duration-500 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.3)]">
+                        <div className="aspect-[3/4] rounded-xl overflow-hidden bg-black relative mb-5">
                             <img 
                                 src={`${import.meta.env.VITE_UPLOAD_BASE_URL || 'http://localhost:5000'}/uploads/${product.image}`}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                className="w-full h-full object-cover group-hover:scale-110 group-hover:opacity-60 transition-all duration-700 ease-out"
                                 alt={product.name}
-                                onError={(e) => e.target.src="https://via.placeholder.com/400x500?text=Perfume"}
+                                onError={(e) => e.target.src="https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800"}
                             />
-                            <div className="absolute top-4 right-4 bg-black/80 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest text-amber-100">
+                            
+                            {/* Kategori Badge */}
+                            <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-gray-200">
                                 {product.category || 'Luxury'}
+                            </div>
+
+                            {/* Tombol Hover Tengah (Futuristik) */}
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                <Link to={`/product/${product.id}`} className="translate-y-4 group-hover:translate-y-0 transition-all duration-500 bg-white/10 backdrop-blur-md border border-white/20 text-white font-medium text-xs uppercase tracking-[0.2em] px-8 py-3 rounded-full hover:bg-amber-500 hover:text-black hover:border-amber-500">
+                                    View Details
+                                </Link>
                             </div>
                         </div>
 
-                        <div className="space-y-2 mb-6">
-                            <h3 className="text-xl font-semibold text-gray-900">{product.name}</h3>
-                            <p className="text-gray-500 text-sm line-clamp-2">{product.description || 'A unique scent for every occasion.'}</p>
-                            <p className="text-xl font-bold text-[#161616] pt-2">
-                                Rp {Number(product.price).toLocaleString('id-ID')}
+                        <div className="text-center px-2 pb-2">
+                            <h3 className="text-lg font-brand text-gray-100 group-hover:text-amber-400 transition-colors duration-300">{product.name}</h3>
+                            <p className="text-amber-500/80 font-mono text-sm mt-2 tracking-wider">
+                                IDR {Number(product.price).toLocaleString('id-ID')}
                             </p>
-                        </div>
-
-                        <div className="absolute left-5 right-5 bottom-5 translate-y-16 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                            <Link to={`/product/${product.id}`} className="block text-center w-full bg-gradient-to-r from-[#171717] to-[#2a2119] text-amber-100 py-3 rounded-xl hover:from-black hover:to-[#1c140d] transition">
-                                Detail
-                            </Link>
                         </div>
                     </div>
                 ))}

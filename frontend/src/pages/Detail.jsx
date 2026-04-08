@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import API from '../api';
 import { useCart } from '../context/CartContext';
+import { ArrowLeft, CheckCircle } from 'lucide-react';
 
 const Detail = () => {
     const { id } = useParams();
@@ -19,25 +20,28 @@ const Detail = () => {
     const handleAddToCart = async () => {
         addToCart(product);
         await Swal.fire({
+            background: '#111',
+            color: '#fff',
             icon: 'success',
-            title: 'Masuk ke keranjang',
-            timer: 1200,
-            showConfirmButton: false
+            title: 'Added to Cart',
+            text: `${product.name} has been added.`,
+            timer: 1500,
+            showConfirmButton: false,
+            iconColor: '#f59e0b'
         });
         navigate('/cart');
     };
 
     if (!product) {
         return (
-            <div className="min-h-screen bg-[#f6f1e8] px-6 md:px-12 py-16">
-                <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 animate-pulse">
-                    <div className="h-[520px] bg-gray-200 rounded-3xl"></div>
-                    <div className="space-y-6">
-                        <div className="h-6 w-24 bg-gray-200 rounded"></div>
-                        <div className="h-12 w-2/3 bg-gray-200 rounded"></div>
-                        <div className="h-8 w-1/3 bg-gray-200 rounded"></div>
-                        <div className="h-32 w-full bg-gray-200 rounded"></div>
-                        <div className="h-14 w-full bg-gray-200 rounded"></div>
+            <div className="min-h-screen pt-32 px-6">
+                <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 animate-pulse">
+                    <div className="aspect-[4/5] bg-white/5 border border-white/10 rounded-3xl"></div>
+                    <div className="space-y-8 mt-10">
+                        <div className="h-6 w-32 bg-white/10 rounded-full"></div>
+                        <div className="h-16 w-3/4 bg-white/10 rounded-xl"></div>
+                        <div className="h-10 w-1/3 bg-white/10 rounded-xl"></div>
+                        <div className="h-40 w-full bg-white/5 rounded-2xl"></div>
                     </div>
                 </div>
             </div>
@@ -45,66 +49,77 @@ const Detail = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#f8f3ea] to-[#f3ece1] p-6 md:p-12">
-            <div className="max-w-6xl mx-auto grid md:grid-cols-[1.1fr_0.9fr] gap-16 items-center">
+        <div className="min-h-screen pt-28 pb-20 px-6 relative z-10">
+            {/* Tombol Back Futuristik */}
+            <div className="max-w-6xl mx-auto mb-8">
+                <button onClick={() => navigate(-1)} className="group flex items-center gap-2 text-gray-400 hover:text-amber-400 transition-colors uppercase tracking-widest text-xs font-bold">
+                    <ArrowLeft size={16} className="group-hover:-translate-x-2 transition-transform duration-300" /> Back to Shop
+                </button>
+            </div>
+
+            <div className="max-w-6xl mx-auto grid lg:grid-cols-[1fr_1fr] gap-16 items-center">
                 
-                {/* GAMBAR PRODUK */}
+                {/* GAMBAR PRODUK (Glowing Aura) */}
                 <div className="relative group">
-                    <div className="absolute -inset-2 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-[40px] blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                    <div className="relative rounded-[35px] overflow-hidden bg-gray-100 shadow-2xl">
+                    {/* Cahaya Belakang */}
+                    <div className="absolute -inset-4 bg-gradient-to-tr from-amber-600 to-yellow-300 rounded-[3rem] blur-2xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+                    <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden bg-[#0a0a0a] border border-white/10 shadow-2xl">
                         <img 
                             src={`${import.meta.env.VITE_UPLOAD_BASE_URL || 'http://localhost:5000'}/uploads/${product.image}`}
-                            className="w-full h-[600px] object-cover hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-1000 ease-out opacity-90"
                             alt={product.name}
-                            onError={(e) => e.target.src = "https://via.placeholder.com/600x800?text=Gambar+Hilang"}
+                            onError={(e) => e.target.src = "https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=800"}
                         />
                     </div>
                 </div>
 
                 {/* INFO PRODUK */}
-                <div className="space-y-8">
-                    <div className="space-y-2">
-                        <span className="bg-black text-white px-4 py-1 rounded-full text-xs tracking-widest uppercase">{product.category}</span>
-                        <h1 className="text-5xl font-brand text-gray-900 leading-tight">{product.name}</h1>
-                    </div>
-
-                    <div className="flex items-baseline gap-4">
-                        <p className="text-4xl font-black text-[#1f1a15]">Rp {Number(product.price).toLocaleString('id-ID')}</p>
-                        <p className="text-gray-400 font-bold">Stok: {product.stock} Tersedia</p>
-                    </div>
-
-                    <div className="h-2 w-24 bg-gray-900"></div>
-
+                <div className="space-y-10">
                     <div className="space-y-4">
-                        <h3 className="font-black text-lg uppercase tracking-tighter">Tentang Wangi Ini:</h3>
-                        <p className="text-gray-600 text-xl leading-relaxed italic">
-                            "{product.description || "Parfum eksklusif dengan karakter aroma yang unik dan tahan lama hingga 12 jam. Cocok untuk menemani setiap momen spesialmu."}"
+                        <span className="inline-block border border-amber-500/50 text-amber-400 px-4 py-1.5 rounded-full text-[10px] tracking-[0.2em] uppercase font-bold bg-amber-500/10 backdrop-blur-sm">
+                            {product.category}
+                        </span>
+                        <h1 className="text-5xl md:text-6xl font-brand text-white leading-tight">{product.name}</h1>
+                        <p className="text-3xl font-mono text-amber-500 tracking-wider">
+                            Rp {Number(product.price).toLocaleString('id-ID')}
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8">
+                    <div className="h-[1px] w-full bg-gradient-to-r from-white/20 to-transparent"></div>
+
+                    <div className="space-y-4">
+                        <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">The Essence</h3>
+                        <p className="text-gray-300 text-lg leading-relaxed font-light">
+                            {product.description || "Formula rahasia dengan partikel aroma yang beradaptasi dengan suhu tubuh. Menciptakan identitas wangi eksklusif yang tak terlupakan."}
+                        </p>
+                    </div>
+
+                    {/* Stock Indicator */}
+                    <div className="flex items-center gap-3 text-sm font-medium">
+                        <CheckCircle size={18} className="text-amber-500" />
+                        <span className="text-gray-300">Available in Stock ({product.stock} units)</span>
+                    </div>
+
+                    {/* Tombol Aksi */}
+                    <div className="pt-4">
                         <button 
                             onClick={handleAddToCart}
-                            className="bg-gradient-to-r from-[#171717] to-[#2a2119] text-amber-100 py-5 rounded-2xl font-black text-xl hover:from-black hover:to-[#1c140d] transition shadow-xl active:scale-95"
+                            className="w-full relative overflow-hidden group bg-white text-black py-5 rounded-2xl font-bold uppercase tracking-widest text-sm hover:text-white transition-colors duration-300 shadow-[0_0_20px_rgba(255,255,255,0.1)]"
                         >
-                            ADD TO CART
-                        </button>
-                        <button 
-                            onClick={() => navigate(-1)}
-                            className="border-4 border-gray-900 text-gray-900 py-5 rounded-2xl font-black text-xl hover:bg-gray-100 transition active:scale-95"
-                        >
-                            BACK
+                            <span className="relative z-10">Add to Cart</span>
+                            <div className="absolute inset-0 bg-amber-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
                         </button>
                     </div>
 
-                    <div className="pt-10 border-t border-gray-100 flex gap-8">
+                    {/* Futuristic Perks */}
+                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
                         <div>
-                            <p className="text-2xl font-black text-gray-900 uppercase">Original</p>
-                            <p className="text-xs font-bold text-gray-400">AUTHENTIC FRAGRANCE</p>
+                            <p className="text-amber-500 font-bold text-xs uppercase tracking-widest mb-1">Authentic</p>
+                            <p className="text-gray-500 text-xs">100% Original Extrait</p>
                         </div>
                         <div>
-                            <p className="text-2xl font-black text-gray-900 uppercase">Long Lasting</p>
-                            <p className="text-xs font-bold text-gray-400">UP TO 12 HOURS</p>
+                            <p className="text-amber-500 font-bold text-xs uppercase tracking-widest mb-1">Longevity</p>
+                            <p className="text-gray-500 text-xs">Up to 24 Hours Radiance</p>
                         </div>
                     </div>
                 </div>
