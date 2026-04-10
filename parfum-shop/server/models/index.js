@@ -6,8 +6,8 @@ const Category = require('./Category');
 
 // --- RELASI DATABASE ---
 // User punya banyak transaksi
-User.hasMany(Transaction, { foreignKey: 'userId' });
-Transaction.belongsTo(User, { foreignKey: 'userId' });
+User.hasMany(Transaction, { foreignKey: 'user_id' });
+Transaction.belongsTo(User, { foreignKey: 'user_id' });
 
 module.exports = {
     sequelize,

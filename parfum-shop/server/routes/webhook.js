@@ -15,7 +15,7 @@ router.post('/', async (req, res) => {
     try {
         const transaction = await Transaction.findOne({ where: { external_id: externalId } });
         if (transaction) {
-            const newStatus = normalizedStatus === 'PAID' ? 'PAID' : normalizedStatus === 'PENDING' ? 'PENDING' : 'FAILED';
+            const newStatus = normalizedStatus === 'PAID' ? 'paid' : normalizedStatus === 'PENDING' ? 'pending' : 'failed';
             await transaction.update({ status: newStatus });
             console.log(`✅ DATABASE UPDATED: Transaction ${externalId} is ${newStatus}`);
         }

@@ -8,6 +8,7 @@ import Detail from './pages/Detail';
 import Cart from './pages/Cart';
 import Login from './pages/login';
 import Register from './pages/Register';
+import Profile from './pages/Profile';
 
 // ADMIN PAGES
 import Dashboard from './pages/admin/Dashboard';
@@ -48,6 +49,7 @@ function App() {
                     <Route path="/shop/:category" element={<Shop />} />
                     <Route path="/product/:id" element={<Detail />} />
                     <Route path="/cart" element={<Cart />} />
+                    <Route path="/profile" element={<Profile />} />
                 </Route>
 
                 {/* AUTH PAGES */}

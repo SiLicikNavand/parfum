@@ -10,7 +10,7 @@ exports.getDashboardStats = async (req, res) => {
         const totalAdmins = await User.count({ where: { role: 'admin' } });
 
         const totalOrders = await Transaction.count();
-        const totalRevenue = await Transaction.sum('amount', { where: { status: 'PAID' } }) || 0;
+        const totalRevenue = await Transaction.sum('amount', { where: { status: 'paid' } }) || 0;
 
         res.status(200).json({
             success: true,
@@ -38,7 +38,7 @@ exports.getDashboardStats = async (req, res) => {
 exports.getPaidTransactions = async (req, res) => {
     try {
         const paidTransactions = await Transaction.findAll({
-            where: { status: 'PAID' },
+            where: { status: 'paid' },
             order: [['createdAt', 'DESC']]
         });
 

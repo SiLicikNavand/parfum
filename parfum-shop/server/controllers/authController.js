@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 // 1. REGISTER SAKTI
 exports.register = async (req, res) => {
     try {
-        const { username, email, password, role } = req.body;
+        const { username, email, password } = req.body;
 
         // Cek input kosong
         if (!username || !email || !password) {
@@ -19,12 +19,12 @@ exports.register = async (req, res) => {
         // Hash Password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Simpan ke DB
+        // Simpan ke DB — role selalu customer (abaikan role dari client)
         const newUser = await User.create({
             username,
             email,
             password: hashedPassword,
-            role: role || 'customer'
+            role: 'customer'
         });
 
         res.status(201).json({ message: "Registrasi Berhasil!", user: newUser });
@@ -61,6 +61,7 @@ exports.login = async (req, res) => {
             user: {
                 id: user.id,
                 username: user.username,
+                email: user.email,
                 role: user.role
             }
         });

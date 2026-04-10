@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ReceiptText, LogOut, PlusCircle } from 'lucide-react';
+import { ReceiptText, LogOut, PlusCircle, LayoutDashboard } from 'lucide-react';
 
 const AdminSidebar = () => {
   const location = useLocation();
@@ -11,6 +11,7 @@ const AdminSidebar = () => {
   };
 
   const menuItems = [
+    { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
     { name: 'Tambah Produk', path: '/admin/products', icon: <PlusCircle size={20} /> },
     { name: 'Transaksi', path: '/admin/transactions', icon: <ReceiptText size={20} /> },
   ];

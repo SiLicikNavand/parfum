@@ -4,6 +4,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { Xendit } = require('xendit-node');
 const { Transaction } = require('../models');
+const { verifyToken, isAdmin } = require('../middleware/authMiddleware');
+const transactionController = require('../controllers/transactionController');
 
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
@@ -14,13 +16,14 @@ const xenditClient = new Xendit({
 
 const { Invoice } = xenditClient;
 
-router.post('/create-invoice', async (req, res) => {
+router.post('/create-invoice', verifyToken, async (req, res) => {
     try {
         if (!process.env.XENDIT_SECRET_KEY) {
             return res.status(500).json({ message: 'XENDIT_SECRET_KEY tidak tersedia di environment.' });
         }
 
-        const { amount, customerEmail, description, itemSummary } = req.body;
+        const { amount, customerEmail, description, itemSummary, items, shipping_address } = req.body;
+        const userId = req.user?.id;
 
         console.log("-----------------------------------------");
         console.log("🚀 [SYSTEM] MEMPROSES PESANAN BARU");
@@ -58,9 +61,12 @@ router.post('/create-invoice', async (req, res) => {
         const response = await Invoice.createInvoice(invoicePayload);
 
         await Transaction.create({
+            user_id: userId,
             external_id: externalId,
+            items: Array.isArray(items) ? items : [],
+            shipping_address: typeof shipping_address === 'string' ? shipping_address : '',
             amount: finalAmount,
-            status: 'PENDING',
+            status: 'pending',
             payment_url: response.invoiceUrl
         });
 
@@ -110,11 +116,16 @@ router.patch('/mark-paid/:externalId', async (req, res) => {
             return res.status(404).json({ message: 'Transaksi tidak ditemukan.' });
         }
 
-        await transaction.update({ status: 'PAID' });
-        return res.status(200).json({ message: 'Transaksi berhasil ditandai PAID.' });
+        await transaction.update({ status: 'paid' });
+        return res.status(200).json({ message: 'Transaksi berhasil ditandai paid.' });
     } catch (err) {
         return res.status(500).json({ message: 'Gagal update status transaksi.', error: err.message });
     }
 });
+
+router.get('/admin/transactions', verifyToken, isAdmin, transactionController.getTransactions);
+router.delete('/admin/transactions/:id', verifyToken, isAdmin, transactionController.deleteTransaction);
+router.delete('/admin/transactions', verifyToken, isAdmin, transactionController.deleteAllTransactions);
+router.get('/my-transactions', verifyToken, transactionController.getMyTransactions);
 
 module.exports = router;
